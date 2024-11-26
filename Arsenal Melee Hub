@@ -1,0 +1,82 @@
+-- Load the Kavo UI Library
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Arsenal Melee Changer", "Midnight")
+
+-- Create a tab and section for weapon selection
+local Tab = Window:NewTab("Weapons")
+local Section = Tab:NewSection("Select a Weapon")
+
+-- Variables
+local player = game.Players.LocalPlayer
+local data = player:WaitForChild("Data")
+local meleeValue = data:WaitForChild("Melee")
+local hitboxSize = 10 -- Adjustable size for the hitbox range
+
+-- Function for hit detection
+local function detectHits()
+    local character = player.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+
+    -- Define a hitbox region
+    local region = Region3.new(
+        rootPart.Position - Vector3.new(hitboxSize, hitboxSize, hitboxSize),
+        rootPart.Position + Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+    )
+
+    -- Get all parts in the region
+    local parts = workspace:FindPartsInRegion3(region, character, math.huge)
+
+    -- Process hits
+    for _, part in ipairs(parts) do
+        local target = part.Parent
+        local humanoid = target and target:FindFirstChild("Humanoid")
+
+        if humanoid then
+            print("Hit: " .. target.Name)
+            humanoid:TakeDamage(25) -- Fixed damage value
+        end
+    end
+end
+
+-- Function to equip a weapon
+local function equipWeapon(weaponName, weaponValue)
+    -- Avoid re-equipping the same weapon
+    if meleeValue.Value == weaponValue then
+        print("Weapon already equipped: " .. weaponName)
+        return
+    end
+
+    meleeValue.Value = weaponValue
+    print("Equipped: " .. weaponName)
+
+    -- Equip the weapon and attach stabbing functionality
+    local weapon = player.Character:FindFirstChild(weaponValue) or player.Backpack:FindFirstChild(weaponValue)
+    if weapon then
+        weapon.Parent = player.Character -- Equip the weapon
+
+        weapon.Activated:Connect(function()
+            print(weaponName .. " stab activated!")
+            detectHits()
+        end)
+    else
+        warn("Weapon not found: " .. weaponValue)
+    end
+end
+
+-- List of weapons (including the new "Moai" weapon)
+local weapons = {
+    {name = "Classic Sword", value = "Classic Sword"},
+    {name = "Big Sip", value = "Big Sip"},
+    {name = "The Illumina", value = "The Illumina"},
+    {name = "When Day Breaks", value = "When Day Breaks"},
+    {name = "Sip O' Stink", value = "Sip O' Stink"},
+    {name = "Moai", value = "Moai"} -- New "Moai" weapon added
+}
+
+-- Add GUI buttons for each weapon
+for _, weapon in ipairs(weapons) do
+    Section:NewButton(weapon.name, "Equip " .. weapon.name, function()
+        equipWeapon(weapon.name, weapon.value)
+    end)
+end
