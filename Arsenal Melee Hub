@@ -64,14 +64,15 @@ local function equipWeapon(weaponName, weaponValue)
     end
 end
 
--- List of weapons (including the new "Moai" weapon)
+-- List of weapons (including the new "Bone Karambit" weapon)
 local weapons = {
     {name = "Classic Sword", value = "Classic Sword"},
     {name = "Big Sip", value = "Big Sip"},
     {name = "The Illumina", value = "The Illumina"},
     {name = "When Day Breaks", value = "When Day Breaks"},
     {name = "Sip O' Stink", value = "Sip O' Stink"},
-    {name = "Moai", value = "Moai"} -- New "Moai" weapon added
+    {name = "Moai", value = "Moai"},
+    {name = "Bone Karambit", value = "Bone Karambit"} -- New "Bone Karambit" weapon added
 }
 
 -- Add GUI buttons for each weapon
