@@ -24,7 +24,7 @@ local function equipWeapon(weaponName, weaponValue)
     print("Equipped: " .. weaponName)
 end
 
--- Function for hit detection
+-- Function for hit detection (automatic stabbing)
 local function detectHits()
     if cooldown then return end -- Prevents spamming
     cooldown = true
@@ -59,6 +59,16 @@ local function detectHits()
     end)
 end
 
+-- Monitor player's actions to trigger stabbing
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end -- Ignore inputs already processed by the game
+
+    -- Trigger stab on left click (MouseButton1)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        detectHits()
+    end
+end)
+
 -- List of weapons
 local weapons = {
     {name = "Classic Sword", value = "Classic Sword"},
@@ -76,8 +86,3 @@ for _, weapon in ipairs(weapons) do
         equipWeapon(weapon.name, weapon.value)
     end)
 end
-
--- Add stab functionality
-Section:NewButton("Stab", "Perform a stab", function()
-    detectHits()
-end)
