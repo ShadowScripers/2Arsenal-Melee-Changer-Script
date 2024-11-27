@@ -10,10 +10,25 @@ local Section = Tab:NewSection("Select a Weapon")
 local player = game.Players.LocalPlayer
 local data = player:WaitForChild("Data")
 local meleeValue = data:WaitForChild("Melee")
-local hitboxSize = 10 -- Adjustable size for the hitbox range
+local hitboxSize = 10 -- Adjustable size for hitbox range
+local cooldown = false -- Prevents rapid activation
+
+-- Function to equip a weapon
+local function equipWeapon(weaponName, weaponValue)
+    if meleeValue.Value == weaponValue then
+        print("Weapon already equipped: " .. weaponName)
+        return
+    end
+
+    meleeValue.Value = weaponValue
+    print("Equipped: " .. weaponName)
+end
 
 -- Function for hit detection
 local function detectHits()
+    if cooldown then return end -- Prevents spamming
+    cooldown = true
+
     local character = player.Character
     local rootPart = character and character:FindFirstChild("HumanoidRootPart")
     if not rootPart then return end
@@ -37,34 +52,14 @@ local function detectHits()
             humanoid:TakeDamage(25) -- Fixed damage value
         end
     end
+
+    -- Cooldown timer
+    task.delay(0.2, function()
+        cooldown = false
+    end)
 end
 
--- Function to equip a weapon
-local function equipWeapon(weaponName, weaponValue)
-    -- Avoid re-equipping the same weapon
-    if meleeValue.Value == weaponValue then
-        print("Weapon already equipped: " .. weaponName)
-        return
-    end
-
-    meleeValue.Value = weaponValue
-    print("Equipped: " .. weaponName)
-
-    -- Equip the weapon and attach stabbing functionality
-    local weapon = player.Character:FindFirstChild(weaponValue) or player.Backpack:FindFirstChild(weaponValue)
-    if weapon then
-        weapon.Parent = player.Character -- Equip the weapon
-
-        weapon.Activated:Connect(function()
-            print(weaponName .. " stab activated!")
-            detectHits()
-        end)
-    else
-        warn("Weapon not found: " .. weaponValue)
-    end
-end
-
--- List of weapons (including the new "Bone Karambit" weapon)
+-- List of weapons
 local weapons = {
     {name = "Classic Sword", value = "Classic Sword"},
     {name = "Big Sip", value = "Big Sip"},
@@ -72,7 +67,7 @@ local weapons = {
     {name = "When Day Breaks", value = "When Day Breaks"},
     {name = "Sip O' Stink", value = "Sip O' Stink"},
     {name = "Moai", value = "Moai"},
-    {name = "Bone Karambit", value = "Bone Karambit"} -- New "Bone Karambit" weapon added
+    {name = "Bone Karambit", value = "Bone Karambit"}
 }
 
 -- Add GUI buttons for each weapon
@@ -81,3 +76,8 @@ for _, weapon in ipairs(weapons) do
         equipWeapon(weapon.name, weapon.value)
     end)
 end
+
+-- Add stab functionality
+Section:NewButton("Stab", "Perform a stab", function()
+    detectHits()
+end)
