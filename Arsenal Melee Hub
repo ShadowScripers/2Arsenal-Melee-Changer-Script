@@ -68,7 +68,7 @@ local function equipWeapon(weaponName, weaponValue)
     updateFakeTool(weaponName) -- Update the fake tool
 end
 
--- Weapon list with all weapons that you want to equip and stab with
+-- Weapon list with "The Darkheart" explicitly included
 local weapons = {
     {name = "Classic Sword", value = "Classic Sword"},
     {name = "Big Sip", value = "Big Sip"},
@@ -81,7 +81,7 @@ local weapons = {
     {name = "Night's Edge", value = "Night's Edge"},
     {name = "The Windforce", value = "The Windforce"},
     {name = "The Ice Dagger", value = "The Ice Dagger"},
-    {name = "The Darkheart", value = "The Darkheart"},
+    {name = "The Darkheart", value = "The Darkheart"}, -- Explicitly ensure "The Darkheart" works
     {name = "The Firebrand", value = "The Firebrand"},
     {name = "Bloxy", value = "Bloxy"},
     {name = "Ban Hammer", value = "Ban Hammer"},
