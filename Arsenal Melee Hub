@@ -10,74 +10,88 @@ local Section = Tab:NewSection("Select a Weapon")
 local player = game.Players.LocalPlayer
 local data = player:WaitForChild("Data")
 local meleeValue = data:WaitForChild("Melee")
-local hitboxSize = 10 -- Adjustable size for hitbox range
-local cooldown = false -- Prevents rapid activation
+local fakeTool -- Holds the fake tool reference
+local hitboxSize = 15 -- Adjustable hitbox size
+local stabDelay = 0.1 -- Stabbing interval
+local canStab = true -- Debounce for stabbing
+
+-- Function to create or update the fake tool
+local function updateFakeTool(weaponName)
+    if not fakeTool then
+        -- Create the fake tool if it doesn't exist
+        fakeTool = Instance.new("Tool")
+        fakeTool.RequiresHandle = false
+        fakeTool.CanBeDropped = false
+        fakeTool.Parent = player.Backpack
+
+        -- Stab functionality
+        fakeTool.Activated:Connect(function()
+            if not canStab then return end
+            canStab = false
+
+            -- Stabbing logic
+            local character = player.Character
+            if not character then return end
+            local playerRoot = character:FindFirstChild("HumanoidRootPart")
+            if not playerRoot then return end
+
+            -- Iterate through other players to check if they are within stabbing range
+            for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+                if otherPlayer ~= player and otherPlayer.Character then
+                    local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    local humanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+
+                    if otherRoot and humanoid then
+                        local distance = (playerRoot.Position - otherRoot.Position).Magnitude
+                        if distance <= hitboxSize then
+                            humanoid:TakeDamage(25) -- Apply damage
+                            print("Stabbed: " .. otherPlayer.Name)
+                        end
+                    end
+                end
+            end
+
+            -- Reset stab debounce after delay
+            task.wait(stabDelay)
+            canStab = true
+        end)
+    end
+
+    -- Update the tool's name to the current weapon
+    fakeTool.Name = weaponName
+end
 
 -- Function to equip a weapon
 local function equipWeapon(weaponName, weaponValue)
-    if meleeValue.Value == weaponValue then
-        print("Weapon already equipped: " .. weaponName)
-        return
-    end
-
     meleeValue.Value = weaponValue
     print("Equipped: " .. weaponName)
+    updateFakeTool(weaponName) -- Update the fake tool
 end
 
--- Function for hit detection (automatic stabbing)
-local function detectHits()
-    if cooldown then return end -- Prevents spamming
-    cooldown = true
-
-    local character = player.Character
-    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return end
-
-    -- Define a hitbox region
-    local region = Region3.new(
-        rootPart.Position - Vector3.new(hitboxSize, hitboxSize, hitboxSize),
-        rootPart.Position + Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-    )
-
-    -- Get all parts in the region
-    local parts = workspace:FindPartsInRegion3(region, character, math.huge)
-
-    -- Process hits
-    for _, part in ipairs(parts) do
-        local target = part.Parent
-        local humanoid = target and target:FindFirstChild("Humanoid")
-
-        if humanoid then
-            print("Hit: " .. target.Name)
-            humanoid:TakeDamage(25) -- Fixed damage value
-        end
-    end
-
-    -- Cooldown timer
-    task.delay(0.2, function()
-        cooldown = false
-    end)
-end
-
--- Monitor player's actions to trigger stabbing
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end -- Ignore inputs already processed by the game
-
-    -- Trigger stab on left click (MouseButton1)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        detectHits()
-    end
-end)
-
--- List of weapons
+-- Weapon list with all weapons that you want to equip and stab with
 local weapons = {
     {name = "Classic Sword", value = "Classic Sword"},
     {name = "Big Sip", value = "Big Sip"},
     {name = "The Illumina", value = "The Illumina"},
     {name = "When Day Breaks", value = "When Day Breaks"},
-    {name = "Sip O' Stink", value = "Sip O' Stink"},
     {name = "Moai", value = "Moai"},
-    {name = "Bone Karambit", value = "Bone Karambit"}
+    {name = "Saber", value = "Saber"},
+    {name = "Coal Scythe", value = "Coal Scythe"},
+    {name = "Smug Egg", value = "Smug Egg"},
+    {name = "Night's Edge", value = "Night's Edge"},
+    {name = "The Windforce", value = "The Windforce"},
+    {name = "The Ice Dagger", value = "The Ice Dagger"},
+    {name = "The Darkheart", value = "The Darkheart"},
+    {name = "The Firebrand", value = "The Firebrand"},
+    {name = "Bloxy", value = "Bloxy"},
+    {name = "Ban Hammer", value = "Ban Hammer"},
+    {name = "Silver Bell", value = "Silver Bell"},
+    {name = "Swordfish", value = "Swordfish"},
+    {name = "ACT Trophy", value = "ACT Trophy"},
+    {name = "Butterfly Knife", value = "Butterfly Knife"},
+    {name = "Karambit", value = "Karambit"},
+    {name = "Bone Karambit", value = "Bone Karambit"},
+    {name = "Sip O' Stink", value = "Sip O' Stink"}
 }
 
 -- Add GUI buttons for each weapon
@@ -86,3 +100,5 @@ for _, weapon in ipairs(weapons) do
         equipWeapon(weapon.name, weapon.value)
     end)
 end
+
+print("Arsenal Melee Changer loaded successfully.")
